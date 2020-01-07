@@ -1,2 +1,2 @@
 # Grid-Clock
- Arduino based Grid Type Clock
+### Arduino based Grid Type Clock
