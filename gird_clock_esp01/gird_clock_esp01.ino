@@ -1,39 +1,35 @@
-#include <SoftwareSerial.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 
-SoftwareSerial ESP01(SCK, MISO);
+#define SSID "ssid"
+#define PASSWORD "password"
+#define TARGET_URI "http://novang.me/time.php"
 
 void setup()
 {
-	Serial.begin(9600);
-	ESP01.begin(9600);
-	delay(1000);
-	ESP01.println("AT+RST");
+	Serial.begin(115200);
+	WiFi.begin(SSID, PASSWORD);
+
+	while (WiFi.status() != WL_CONNECTED)
+	{
+		delay(1000);
+		Serial.println("Connecting.....");
+	}
 }
 
 void loop()
 {
-	if (ESP01.available())
+	if (WiFi.status() == WL_CONNECTED)
 	{
-		Serial.write(ESP01.read());
-	}
+		HTTPClient httpClient;
+		httpClient.begin(TARGET_URI);
+		int httpCode = httpClient.GET();
 
-	if (Serial.available())
-	{
-		int _serial = Serial.read();
-		if (_serial == 49) 
+		if (httpCode == 200)
 		{
-			ESP01.println("AT+CIPSTART=\"TCP\",\"novang.me\",80");
+			Serial.println(httpClient.getString());
 		}
-		else if (_serial == 50)
-		{
-			ESP01.println("AT+CIPSEND=44");
-		}
-		else if (_serial == 51)
-		{
-			ESP01.print("GET /time.php HTTP/1.1\r\nHost: novang.me\r\n\r\n");
-		}
-		ESP01.write(Serial.read());
+		httpClient.end();
 	}
+	delay(30000);
 }
-
-
